@@ -26,3 +26,4 @@ ch_perf_test-*.tar
 /tmp/
 
 /config/*.secret.exs
+/config/dev.exs
