@@ -11,6 +11,8 @@ defmodule PerfTestAgent do
   defmodule RootSup do
     use Supervisor
 
+    @app :perf_test_agent
+
     def start_link(:no_args) do
       Supervisor.start_link(__MODULE__, :no_args)
     end
@@ -18,6 +20,10 @@ defmodule PerfTestAgent do
     @impl true
     def init(:no_args) do
       spec = [
+        {Client, %{
+            clickhouse_url: Application.fetch_env!(@app, :clickhouse_url),
+            queries_dir: Application.app_dir(@app, "priv/queries")
+         }}
       ]
       Supervisor.init(spec, strategy: :rest_for_one)
     end
