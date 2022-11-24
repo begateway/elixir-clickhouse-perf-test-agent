@@ -20,13 +20,14 @@ defmodule PerfTestAgent do
     @impl true
     def init(:no_args) do
       spec = [
-        {Client, %{
-            clickhouse_url: Application.fetch_env!(@app, :clickhouse_url),
-            queries_dir: Application.app_dir(@app, "priv/queries")
+        {DbState,
+         %{
+           clickhouse_url: Application.fetch_env!(@app, :clickhouse_url),
+           queries_dir: Application.app_dir(@app, "priv/queries")
          }}
       ]
+
       Supervisor.init(spec, strategy: :rest_for_one)
     end
   end
-  
 end
