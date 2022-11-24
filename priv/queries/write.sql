@@ -9,7 +9,7 @@ insert into cats (
   '{number_of_paws}', '{number_of_tails}', '{age}', '{weight}',
   '{column0}', '{column1}', '{column2}', '{column3}', '{column4}', '{column5}', '{column6}',
   '{column10}', '{column11}', '{column12}', '{column13}', '{column14}', '{column15}', '{column16}'
-)
+);
 
 -- RPS: 50
 insert into cats (
@@ -30,4 +30,4 @@ insert into cats (
   '{column30}', '{column31}', '{column32}', '{column33}', '{column34}', '{column35}', '{column36}'
   '{column40}', '{column41}', '{column42}', '{column43}', '{column44}', '{column45}', '{column46}'
   '{column50}', '{column51}', '{column52}', '{column53}', '{column54}', '{column55}', '{column56}'
-)
+);

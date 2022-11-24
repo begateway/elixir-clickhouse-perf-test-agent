@@ -8,7 +8,7 @@ where created_at > '2022-01-01'
 and number_of_paws > 6
 and weight > 100
 order by created_at asc
-limit 10
+limit 10;
 
 -- RPS: 1
 select uid,
@@ -21,7 +21,7 @@ from cats
 where created_at >= '2022-01-01'
 group by uid
 having _length > 10 and _feeded_at > '2022-01-01'
-limit 10
+limit 10;
 
 -- RPS: 1
 select count(uid) from (
@@ -30,4 +30,4 @@ select count(uid) from (
   from cats
   group by uid
   having _weight > 100
-)
+);

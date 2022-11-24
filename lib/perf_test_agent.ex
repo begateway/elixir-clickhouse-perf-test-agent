@@ -1,6 +1,5 @@
 defmodule PerfTestAgent do
   use Application
-
   require Logger
 
   def start(_start_type, _args) do
@@ -19,12 +18,21 @@ defmodule PerfTestAgent do
 
     @impl true
     def init(:no_args) do
+      clickhouse_url = Application.fetch_env!(@app, :clickhouse_url)
+      queries_dir = Application.app_dir(@app, "priv/queries")
+
+      db_state_options = %{
+        clickhouse_url: clickhouse_url,
+        queries_dir: queries_dir
+      }
+
+      agent_sup_options = %{
+        queries_dir: queries_dir
+      }
+
       spec = [
-        {DbState,
-         %{
-           clickhouse_url: Application.fetch_env!(@app, :clickhouse_url),
-           queries_dir: Application.app_dir(@app, "priv/queries")
-         }}
+        {DbState, db_state_options},
+        {LoadAgentSup, agent_sup_options}
       ]
 
       Supervisor.init(spec, strategy: :rest_for_one)
