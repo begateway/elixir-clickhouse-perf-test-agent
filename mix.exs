@@ -20,6 +20,7 @@ defmodule ChPerfTest.MixProject do
 
   defp deps do
     [
+      {:ecto, "~> 3.9"},
       {:pillar, git: "https://github.com/begateway/pillar.git"}
     ]
   end
