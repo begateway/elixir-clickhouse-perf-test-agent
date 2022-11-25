@@ -8,10 +8,10 @@ defmodule LoadAgentSup do
 
   def run_agents(queries_dir) do
     get_queries(queries_dir)
-    |> Enum.with_index(fn {rps, query}, id ->
+    |> Enum.with_index(fn {type, rps, query}, id ->
       %{
         id: {:load_agent, id + 1},
-        start: {LoadAgent, :start_link, [{id + 1, rps, query}]}
+        start: {LoadAgent, :start_link, [{id + 1, type, rps, query}]}
       }
     end)
     |> Enum.each(fn spec -> DynamicSupervisor.start_child(__MODULE__, spec) end)
@@ -22,8 +22,16 @@ defmodule LoadAgentSup do
   end
 
   def get_queries(queries_dir) do
-    read_queries = Path.join(queries_dir, "read.sql") |> get_queries_from_file()
-    write_queries = Path.join(queries_dir, "write.sql") |> get_queries_from_file()
+    read_queries =
+      Path.join(queries_dir, "read.sql")
+      |> get_queries_from_file()
+      |> Enum.map(fn {rps, query} -> {:read, rps, query} end)
+
+    write_queries =
+      Path.join(queries_dir, "write.sql")
+      |> get_queries_from_file()
+      |> Enum.map(fn {rps, query} -> {:write, rps, query} end)
+
     read_queries ++ write_queries
   end
 

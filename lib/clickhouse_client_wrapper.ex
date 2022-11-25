@@ -8,7 +8,7 @@ defmodule ClickhouseClientWrapper do
     end
   end
 
-  def send_query(query, params \\ %{}) do
+  def query(query, params \\ %{}) do
     connection()
     |> Pillar.query(query, params)
   end
