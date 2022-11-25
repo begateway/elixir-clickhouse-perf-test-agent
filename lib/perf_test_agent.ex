@@ -18,19 +18,25 @@ defmodule PerfTestAgent do
 
     @impl true
     def init(:no_args) do
-      db_state_options = %{
+      load_manager_args = %{
+        perf_test_duration:
+          Application.fetch_env!(@app, :perf_test_duration)
+          |> Utils.miliseconds_duration(),
+        start_agent_pause:
+          Application.fetch_env!(@app, :start_agent_pause)
+          |> Utils.miliseconds_duration(),
+        queries_dir: Application.app_dir(@app, "priv/queries")
+      }
+
+      db_state_args = %{
         clickhouse_url: Application.fetch_env!(@app, :clickhouse_url),
         queries_dir: Application.app_dir(@app, "priv/queries")
       }
 
-      start_agent_pause =
-        Application.fetch_env!(@app, :start_agent_pause)
-        |> Utils.miliseconds_duration()
-
       spec = [
         {LoadAgentSup, :no_args},
-        {LoadManager, %{start_agent_pause: start_agent_pause}},
-        {DbState, db_state_options}
+        {LoadManager, load_manager_args},
+        {DbState, db_state_args}
       ]
 
       Supervisor.init(spec, strategy: :rest_for_one)

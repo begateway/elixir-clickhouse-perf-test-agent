@@ -10,10 +10,22 @@ defmodule LoadAgent do
             type: :read | :write,
             rate: pos_integer(),
             query: String.t(),
-            start_time: DateTime.t() | nil
+            perf_test_duration: pos_integer(),
+            start_time: DateTime.t() | nil,
+            report_time: DateTime.t() | nil,
+            query_counter: pos_integer()
           }
 
-    defstruct [:id, :type, :rate, :query, :start_time]
+    defstruct [
+      :id,
+      :type,
+      :rate,
+      :query,
+      :perf_test_duration,
+      :start_time,
+      :report_time,
+      :query_counter
+    ]
   end
 
   def start_link(args) do
@@ -27,11 +39,14 @@ defmodule LoadAgent do
       type: args.type,
       rate: args.rate,
       query: args.query,
-      start_time: nil
+      perf_test_duration: args.perf_test_duration,
+      start_time: nil,
+      report_time: nil,
+      query_counter: 0
     }
 
     qinfo = query_info(state.query)
-    Logger.info("LoadAgent id: #{state.id}, type: #{state.type}, query: '#{qinfo}...'")
+    Logger.info("LoadAgent id:#{state.id}, type:#{state.type}, query:'#{qinfo}...'")
     {:ok, state, {:continue, :check_query}}
   end
 
@@ -46,7 +61,8 @@ defmodule LoadAgent do
         System.stop(1)
     end
 
-    state = %{state | start_time: DateTime.utc_now()}
+    now = DateTime.utc_now()
+    state = %{state | start_time: now, report_time: now}
 
     timeout = query_timeout(state.rate)
     Process.send_after(self(), :next_query, timeout)
@@ -55,8 +71,6 @@ defmodule LoadAgent do
 
   @impl true
   def handle_info(:next_query, state) do
-    # Logger.info("LoadAgent id: #{state.id} next query")
-
     case make_query(state.type, state.query) do
       {:ok, _} ->
         # TODO update ok-counter
@@ -64,21 +78,31 @@ defmodule LoadAgent do
 
       other ->
         Logger.error(
-          "LoadAgent id: #{state.id} " <>
+          "LoadAgent id:#{state.id} " <>
             "got invalid response from clickhouse\n#{inspect(other)}"
         )
 
         # TODO update error-counter
     end
 
+    state = %{state | query_counter: state.query_counter + 1}
+
     now = DateTime.utc_now()
 
-    if DateTime.diff(now, state.start_time) < 60 do
+    state =
+      if DateTime.diff(now, state.report_time, :second) > 5 do
+        Logger.info("LoadAgent id:#{state.id} has made #{state.query_counter} queries")
+        %{state | report_time: now}
+      else
+        state
+      end
+
+    if DateTime.diff(now, state.start_time, :millisecond) < state.perf_test_duration do
       timeout = query_timeout(state.rate)
       Process.send_after(self(), :next_query, timeout)
       {:noreply, state}
     else
-      Logger.info("LoadAgent id: #{state.id} has finished")
+      Logger.info("LoadAgent id:#{state.id} has finished")
       {:stop, :normal, state}
     end
   end

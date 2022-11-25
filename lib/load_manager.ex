@@ -6,15 +6,17 @@ defmodule LoadManager do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def run_agents(queries_dir) do
-    GenServer.cast(__MODULE__, {:run_agents, queries_dir})
+  def run_agents() do
+    GenServer.cast(__MODULE__, :run_agents)
   end
 
   @impl true
   def init(args) do
     state = %{
       agent_args: [],
-      start_agent_pause: args.start_agent_pause
+      perf_test_duration: args.perf_test_duration,
+      start_agent_pause: args.start_agent_pause,
+      queries_dir: args.queries_dir
     }
 
     Logger.info("Start LoadManager")
@@ -22,17 +24,18 @@ defmodule LoadManager do
   end
 
   @impl true
-  def handle_cast({:run_agents, queries_dir}, state) do
+  def handle_cast(:run_agents, state) do
     Logger.info("Run load agents")
 
     agent_args =
-      get_queries(queries_dir)
+      get_queries(state.queries_dir)
       |> Enum.with_index(fn {type, rps, query}, id ->
         %{
           id: id + 1,
           type: type,
           rate: rps,
-          query: query
+          query: query,
+          perf_test_duration: state.perf_test_duration
         }
       end)
 
