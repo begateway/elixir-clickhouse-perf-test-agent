@@ -11,7 +11,8 @@ defmodule LoadAgentSup do
     |> Enum.with_index(fn {type, rps, query}, id ->
       %{
         id: {:load_agent, id + 1},
-        start: {LoadAgent, :start_link, [{id + 1, type, rps, query}]}
+        start: {LoadAgent, :start_link, [{id + 1, type, rps, query}]},
+        restart: :temporary
       }
     end)
     |> Enum.each(fn spec -> DynamicSupervisor.start_child(__MODULE__, spec) end)

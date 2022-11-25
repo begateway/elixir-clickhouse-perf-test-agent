@@ -1,4 +1,4 @@
--- RPS: 50
+-- RPS: 10
 INSERT INTO cats (
   uid, name, created_at, updated_at,
   number_of_paws, number_of_tails, age, weight,
@@ -11,7 +11,7 @@ INSERT INTO cats (
   {column10}, {column11}, {column12}, {column13}, {column14}, {column15}, {column16}
 );
 
--- RPS: 50
+-- RPS: 10
 INSERT INTO cats (
   uid, name, created_at, updated_at, feeded_at,
   number_of_paws, number_of_tails, age, length, weight,
