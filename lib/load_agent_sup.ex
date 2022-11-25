@@ -1,18 +1,24 @@
 defmodule LoadAgentSup do
-  use Supervisor
+  use DynamicSupervisor
   require Logger
 
-  def start_link(options) do
-    Supervisor.start_link(__MODULE__, options)
+  def start_link(:no_args) do
+    DynamicSupervisor.start_link(__MODULE__, :no_args, name: __MODULE__)
   end
 
-  def init(options) do
-    queries = Map.fetch!(options, :queries_dir) |> get_queries()
-    Logger.info("queries #{inspect(queries)}")
+  def run_agents(queries_dir) do
+    get_queries(queries_dir)
+    |> Enum.with_index(fn {rps, query}, id ->
+      %{
+        id: {:load_agent, id + 1},
+        start: {LoadAgent, :start_link, [{id + 1, rps, query}]}
+      }
+    end)
+    |> Enum.each(fn spec -> DynamicSupervisor.start_child(__MODULE__, spec) end)
+  end
 
-    # TODO run LoadAgent for each query
-    spec = []
-    Supervisor.init(spec, strategy: :one_for_one)
+  def init(:no_args) do
+    DynamicSupervisor.init(strategy: :one_for_one)
   end
 
   def get_queries(queries_dir) do

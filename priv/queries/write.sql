@@ -1,5 +1,5 @@
 -- RPS: 50
-insert into cats (
+INSERT INTO cats (
   uid, name, created_at, updated_at,
   number_of_paws, number_of_tails, age, weight,
   column0, column1, column2, column3, column4, column5, column6,
@@ -12,7 +12,7 @@ insert into cats (
 );
 
 -- RPS: 50
-insert into cats (
+INSERT INTO cats (
   uid, name, created_at, updated_at, feeded_at
   number_of_paws, number_of_tails, age, length, weight,
   column0, column1, column2, column3, column4, column5, column6,

@@ -2,6 +2,8 @@ defmodule DbState do
   use Task
   require Logger
 
+  alias ClickhouseClientWrapper, as: Client
+
   def start_link(state) do
     Task.start_link(__MODULE__, :create_initial_db_state, [state])
   end
@@ -10,31 +12,26 @@ defmodule DbState do
 
   def create_initial_db_state(state) do
     Logger.info("Create initial DB state")
-    check_connection(state.clickhouse_url)
+    :ok = Client.check_connection()
+    Logger.info("Connection to #{state.clickhouse_url} is ok")
     create_table(state)
     fill_table(state)
-  end
-
-  defp check_connection(clickhouse_url) do
-    {:ok, 1} = Pillar.Connection.new(clickhouse_url) |> Pillar.query("SELECT 1")
-    Logger.info("Connection to #{clickhouse_url} is ok")
+    LoadAgentSup.run_agents(state.queries_dir)
   end
 
   defp create_table(state) do
     Logger.info("Create table '#{@table}'")
     query = get_queries("create_table", state.queries_dir)
-    send_query(state.clickhouse_url, query)
+    Client.send_query(query)
   end
 
-  defp fill_table(state) do
+  defp fill_table(_state) do
     Logger.info("Fill table '#{@table}' with data")
-    {:ok, ""} = send_query(state.clickhouse_url, "truncate table #{@table}")
-
-    conn = Pillar.Connection.new(state.clickhouse_url)
+    {:ok, ""} = Client.send_query("truncate table #{@table}")
 
     Enum.each(1..100, fn _ ->
       rows = [rand_row(), rand_row(), rand_row()]
-      {:ok, ""} = Pillar.insert_to_table(conn, @table, rows)
+      {:ok, ""} = Client.insert_to_table(@table, rows)
     end)
 
     Logger.info("300 rows inserted")
@@ -43,11 +40,6 @@ defmodule DbState do
   defp get_queries(file_name, queries_dir) do
     Path.join(queries_dir, file_name <> ".sql")
     |> File.read!()
-  end
-
-  defp send_query(clickhouse_url, query, params \\ %{}) do
-    Pillar.Connection.new(clickhouse_url)
-    |> Pillar.query(query, params)
   end
 
   def rand_row() do
