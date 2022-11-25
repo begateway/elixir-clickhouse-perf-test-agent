@@ -23,8 +23,13 @@ defmodule PerfTestAgent do
         queries_dir: Application.app_dir(@app, "priv/queries")
       }
 
+      start_agent_pause =
+        Application.fetch_env!(@app, :start_agent_pause)
+        |> Utils.miliseconds_duration()
+
       spec = [
         {LoadAgentSup, :no_args},
+        {LoadManager, %{start_agent_pause: start_agent_pause}},
         {DbState, db_state_options}
       ]
 

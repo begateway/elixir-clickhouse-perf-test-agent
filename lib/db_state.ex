@@ -16,7 +16,7 @@ defmodule DbState do
     Logger.info("Connection to #{state.clickhouse_url} is ok")
     create_table(state)
     fill_table(state)
-    LoadAgentSup.run_agents(state.queries_dir)
+    LoadManager.run_agents(state.queries_dir)
   end
 
   defp create_table(state) do

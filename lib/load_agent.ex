@@ -21,17 +21,17 @@ defmodule LoadAgent do
   end
 
   @impl true
-  def init({id, type, rate, query}) do
+  def init(args) do
     state = %State{
-      id: id,
-      type: type,
-      rate: rate,
-      query: query,
+      id: args.id,
+      type: args.type,
+      rate: args.rate,
+      query: args.query,
       start_time: nil
     }
 
-    qinfo = query_info(query)
-    Logger.info("LoadAgent id: #{id}, type: #{type}, query: '#{qinfo}...'")
+    qinfo = query_info(state.query)
+    Logger.info("LoadAgent id: #{state.id}, type: #{state.type}, query: '#{qinfo}...'")
     {:ok, state, {:continue, :check_query}}
   end
 
@@ -55,7 +55,7 @@ defmodule LoadAgent do
 
   @impl true
   def handle_info(:next_query, state) do
-    Logger.info("LoadAgent id: #{state.id} next query")
+    # Logger.info("LoadAgent id: #{state.id} next query")
 
     case make_query(state.type, state.query) do
       {:ok, _} ->
