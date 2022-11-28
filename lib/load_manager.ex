@@ -16,7 +16,8 @@ defmodule LoadManager do
       agent_args: [],
       perf_test_duration: args.perf_test_duration,
       start_agent_pause: args.start_agent_pause,
-      queries_dir: args.queries_dir
+      read_queries_file: args.read_queries_file,
+      write_queries_file: args.write_queries_file
     }
 
     Logger.info("Start LoadManager")
@@ -27,8 +28,16 @@ defmodule LoadManager do
   def handle_cast(:run_agents, state) do
     Logger.info("Run load agents")
 
+    read_queries =
+      get_queries_from_file(state.read_queries_file)
+      |> Enum.map(fn {rps, query} -> {:read, rps, query} end)
+
+    write_queries =
+      get_queries_from_file(state.write_queries_file)
+      |> Enum.map(fn {rps, query} -> {:write, rps, query} end)
+
     agent_args =
-      get_queries(state.queries_dir)
+      (read_queries ++ write_queries)
       |> Enum.with_index(fn {type, rps, query}, id ->
         %{
           id: id + 1,
@@ -68,20 +77,6 @@ defmodule LoadManager do
   def handle_info(msg, state) do
     Logger.error("LoadManager.handle_info unknown msg #{inspect(msg)}")
     {:noreply, state}
-  end
-
-  defp get_queries(queries_dir) do
-    read_queries =
-      Path.join(queries_dir, "read.sql")
-      |> get_queries_from_file()
-      |> Enum.map(fn {rps, query} -> {:read, rps, query} end)
-
-    write_queries =
-      Path.join(queries_dir, "write.sql")
-      |> get_queries_from_file()
-      |> Enum.map(fn {rps, query} -> {:write, rps, query} end)
-
-    read_queries ++ write_queries
   end
 
   defp get_queries_from_file(file) do

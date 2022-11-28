@@ -8,8 +8,6 @@ defmodule DbState do
     Task.start_link(__MODULE__, :create_initial_db_state, [state])
   end
 
-  @table "cats"
-
   def create_initial_db_state(state) do
     Logger.info("Create initial DB state")
     :ok = Client.check_connection()
@@ -19,27 +17,30 @@ defmodule DbState do
     LoadManager.run_agents()
   end
 
-  defp create_table(state) do
-    Logger.info("Create table '#{@table}'")
-    query = get_queries("create_table", state.queries_dir)
+  defp create_table(%{create_table?: true} = state) do
+    Logger.info("Create table '#{state.table_name}'")
+    query = File.read!(state.create_table_file)
     Client.query(query)
   end
 
-  defp fill_table(_state) do
-    Logger.info("Fill table '#{@table}' with data")
-    {:ok, ""} = Client.query("truncate table #{@table}")
+  defp create_table(%{create_table?: false}) do
+    Logger.info("Skip creating table")
+  end
+
+  defp fill_table(%{fill_table?: true} = state) do
+    Logger.info("Fill table '#{state.table_name}' with data")
+    {:ok, ""} = Client.query("truncate table #{state.table_name}")
 
     Enum.each(1..100, fn _ ->
       rows = [rand_row(), rand_row(), rand_row()]
-      {:ok, ""} = Client.insert_to_table(@table, rows)
+      {:ok, ""} = Client.insert_to_table(state.table_name, rows)
     end)
 
     Logger.info("300 rows inserted")
   end
 
-  defp get_queries(file_name, queries_dir) do
-    Path.join(queries_dir, file_name <> ".sql")
-    |> File.read!()
+  defp fill_table(%{fill_table?: false}) do
+    Logger.info("Skip filling table")
   end
 
   def rand_row() do
