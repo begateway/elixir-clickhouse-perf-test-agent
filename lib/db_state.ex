@@ -20,7 +20,7 @@ defmodule PTA.DbState do
   defp create_table(%{create_table?: true} = state) do
     Logger.info("Create table '#{state.table_name}'")
     query = File.read!(state.create_table_file)
-    Client.query(query)
+    Client.query(:pillar_0, query)
   end
 
   defp create_table(%{create_table?: false}) do
@@ -29,7 +29,7 @@ defmodule PTA.DbState do
 
   defp fill_table(%{fill_table?: true} = state) do
     Logger.info("Fill table '#{state.table_name}' with data")
-    {:ok, ""} = Client.query("truncate table #{state.table_name}")
+    {:ok, ""} = Client.query(:pillar_0, "truncate table #{state.table_name}")
 
     Enum.each(1..100, fn _ ->
       rows = [rand_row(), rand_row(), rand_row()]

@@ -4,7 +4,6 @@ defmodule PerfTestAgent do
 
   def start(_start_type, _args) do
     Logger.info("Start PerfTestAgent")
-    PTA.Metrics.setup()
     PerfTestAgent.RootSup.start_link(:no_args)
   end
 
@@ -20,11 +19,19 @@ defmodule PerfTestAgent do
     @impl true
     def init(:no_args) do
       clickhouse_url = Application.fetch_env!(@app, :clickhouse_url)
+      client = Application.fetch_env!(@app, :client)
+
       queries_settings = Application.fetch_env!(@app, :queries)
       queries_dir = Application.app_dir(@app, queries_settings.queries_dir)
       table_settings = Application.fetch_env!(@app, :table)
 
+      histogram_backets = Application.fetch_env!(@app, :histogram_backets)
+      PTA.Metrics.setup(histogram_backets)
+
+      :ok = :hackney_pool.start_pool(:clickhouse, [{:max_connections, 200}])
+
       load_manager_args = %{
+        client: client,
         perf_test_duration:
           Application.fetch_env!(@app, :perf_test_duration)
           |> PTA.Utils.miliseconds_duration(),

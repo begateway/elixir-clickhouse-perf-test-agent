@@ -1,4 +1,7 @@
 defmodule PTA.ClickhouseClientWrapper do
+  alias Pillar.Connection
+  alias Pillar.QueryBuilder
+
   def check_connection() do
     connection()
     |> Pillar.query("SELECT 1")
@@ -8,11 +11,6 @@ defmodule PTA.ClickhouseClientWrapper do
     end
   end
 
-  def query(query, params \\ %{}) do
-    connection()
-    |> Pillar.query(query, params)
-  end
-
   def insert_to_table(table, rows) do
     connection()
     |> Pillar.insert_to_table(table, rows)
@@ -20,6 +18,31 @@ defmodule PTA.ClickhouseClientWrapper do
 
   defp connection() do
     Application.fetch_env!(:perf_test_agent, :clickhouse_url)
-    |> Pillar.Connection.new()
+    |> Connection.new()
+  end
+
+  def query(client, query, params \\ %{})
+
+  def query(:pillar_0, query, params) do
+    connection()
+    |> Pillar.query(query, params)
+  end
+
+  def query(:pillar_1, query, params) do
+    connection()
+    |> Pillar.query(query, params, %{db_side_batch_insertions: true})
+  end
+
+  def query(:hackney_0, query, params) do
+    url = connection() |> Connection.url_from_connection()
+    headers = []
+    payload = QueryBuilder.query(query, params)
+    options = [{:pool, :clickhouse}]
+
+    case :hackney.post(url, headers, payload, options) do
+      {:ok, 200, _, _} -> {:ok, ""}
+      {:ok, status_code, _, _} -> {:error, status_code}
+      {:error, error} -> {:error, error}
+    end
   end
 end

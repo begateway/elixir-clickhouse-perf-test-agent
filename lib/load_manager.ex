@@ -10,10 +10,16 @@ defmodule PTA.LoadManager do
     GenServer.cast(__MODULE__, :run_agents)
   end
 
+  def on_agent_finished(agent_id) do
+    GenServer.cast(__MODULE__, {:agent_finished, agent_id})
+  end
+
   @impl true
   def init(args) do
     state = %{
       agent_args: [],
+      agents: [],
+      client: args.client,
       perf_test_duration: args.perf_test_duration,
       start_agent_pause: args.start_agent_pause,
       read_queries_file: args.read_queries_file,
@@ -43,6 +49,7 @@ defmodule PTA.LoadManager do
           id: id + 1,
           type: type,
           rate: rps,
+          client: state.client,
           query: query,
           perf_test_duration: state.perf_test_duration
         }
@@ -51,6 +58,23 @@ defmodule PTA.LoadManager do
     state = %{state | agent_args: agent_args}
 
     send(self(), :run_next_agent)
+    Process.send_after(self(), :report_metrics, 60_000)
+    {:noreply, state}
+  end
+
+  def handle_cast({:agent_finished, agent_id}, state) do
+    agents = List.delete(state.agents, agent_id)
+    state = %{state | agents: agents}
+
+    case agents do
+      [] ->
+        PTA.Metrics.report()
+        Logger.info("DONE")
+
+      _ ->
+        :ok
+    end
+
     {:noreply, state}
   end
 
@@ -68,9 +92,19 @@ defmodule PTA.LoadManager do
     [args | rest] = agent_args
     PTA.LoadAgentSup.run_agent(args.id, args)
 
-    state = %{state | agent_args: rest}
+    state = %{state | agent_args: rest, agents: [args.id | state.agents]}
 
     Process.send_after(self(), :run_next_agent, state.start_agent_pause)
+    {:noreply, state}
+  end
+
+  def handle_info(:report_metrics, %{agents: []} = state) do
+    {:noreply, state}
+  end
+
+  def handle_info(:report_metrics, state) do
+    PTA.Metrics.report()
+    Process.send_after(self(), :report_metrics, 60_000)
     {:noreply, state}
   end
 

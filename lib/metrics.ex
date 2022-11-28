@@ -2,7 +2,7 @@ defmodule PTA.Metrics do
   use Prometheus.Metric
   require Logger
 
-  def setup do
+  def setup(histogram_backets) do
     Counter.declare(
       name: :total_read_queries,
       labels: [],
@@ -42,14 +42,14 @@ defmodule PTA.Metrics do
     Histogram.new(
       name: :read_query_duration_milliseconds,
       labels: [],
-      buckets: [50, 100, 300, 500, 750, 1000],
+      buckets: histogram_backets,
       help: "Read query execution time"
     )
 
     Histogram.new(
       name: :write_query_duration_milliseconds,
       labels: [],
-      buckets: [50, 100, 300, 500, 750, 1000],
+      buckets: histogram_backets,
       help: "Write query execution time"
     )
   end
