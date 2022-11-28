@@ -1,8 +1,8 @@
-defmodule DbState do
+defmodule PTA.DbState do
   use Task
   require Logger
 
-  alias ClickhouseClientWrapper, as: Client
+  alias PTA.ClickhouseClientWrapper, as: Client
 
   def start_link(state) do
     Task.start_link(__MODULE__, :create_initial_db_state, [state])
@@ -14,7 +14,7 @@ defmodule DbState do
     Logger.info("Connection to #{state.clickhouse_url} is ok")
     create_table(state)
     fill_table(state)
-    LoadManager.run_agents()
+    PTA.LoadManager.run_agents()
   end
 
   defp create_table(%{create_table?: true} = state) do

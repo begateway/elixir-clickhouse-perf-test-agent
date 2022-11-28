@@ -1,4 +1,4 @@
-defmodule LoadManager do
+defmodule PTA.LoadManager do
   use GenServer
   require Logger
 
@@ -7,7 +7,7 @@ defmodule LoadManager do
   end
 
   def run_agents() do
-    GenServer.cast(__MODULE__, :run_agents)
+    # GenServer.cast(__MODULE__, :run_agents)
   end
 
   @impl true
@@ -66,7 +66,7 @@ defmodule LoadManager do
 
   def handle_info(:run_next_agent, %{agent_args: agent_args} = state) do
     [args | rest] = agent_args
-    LoadAgentSup.run_agent(args.id, args)
+    PTA.LoadAgentSup.run_agent(args.id, args)
 
     state = %{state | agent_args: rest}
 

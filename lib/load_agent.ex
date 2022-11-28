@@ -1,13 +1,15 @@
-defmodule LoadAgent do
+defmodule PTA.LoadAgent do
   use GenServer
   require Logger
 
-  alias ClickhouseClientWrapper, as: Client
+  alias PTA.ClickhouseClientWrapper, as: Client
+
+  @type query_type() :: :read | :write
 
   defmodule State do
     @type t() :: %__MODULE__{
             id: pos_integer(),
-            type: :read | :write,
+            type: PTA.LoadAgent.query_type(),
             rate: pos_integer(),
             query: String.t(),
             perf_test_duration: pos_integer(),
@@ -127,7 +129,7 @@ defmodule LoadAgent do
   end
 
   defp make_query(:write, query) do
-    data = DbState.rand_row()
+    data = PTA.DbState.rand_row()
     Client.query(query, data)
   end
 end

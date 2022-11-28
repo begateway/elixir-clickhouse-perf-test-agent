@@ -1,4 +1,4 @@
-defmodule ClickhouseClientWrapper do
+defmodule PTA.ClickhouseClientWrapper do
   def check_connection() do
     connection()
     |> Pillar.query("SELECT 1")

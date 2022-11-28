@@ -1,4 +1,4 @@
-defmodule ChPerfTest.MixProject do
+defmodule PTA.MixProject do
   use Mix.Project
 
   def project do
@@ -21,6 +21,7 @@ defmodule ChPerfTest.MixProject do
   defp deps do
     [
       {:ecto, "~> 3.9"},
+      {:prometheus_ex, "~> 3.0"},
       {:pillar, git: "https://github.com/begateway/pillar.git"}
     ]
   end

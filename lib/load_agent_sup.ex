@@ -1,4 +1,4 @@
-defmodule LoadAgentSup do
+defmodule PTA.LoadAgentSup do
   use DynamicSupervisor
   require Logger
 
@@ -9,7 +9,7 @@ defmodule LoadAgentSup do
   def run_agent(agent_id, agent_params) do
     spec = %{
       id: {:load_agent, agent_id},
-      start: {LoadAgent, :start_link, [agent_params]},
+      start: {PTA.LoadAgent, :start_link, [agent_params]},
       restart: :temporary
     }
 

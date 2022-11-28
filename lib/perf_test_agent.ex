@@ -4,6 +4,7 @@ defmodule PerfTestAgent do
 
   def start(_start_type, _args) do
     Logger.info("Start PerfTestAgent")
+    PTA.Metrics.setup()
     PerfTestAgent.RootSup.start_link(:no_args)
   end
 
@@ -26,10 +27,10 @@ defmodule PerfTestAgent do
       load_manager_args = %{
         perf_test_duration:
           Application.fetch_env!(@app, :perf_test_duration)
-          |> Utils.miliseconds_duration(),
+          |> PTA.Utils.miliseconds_duration(),
         start_agent_pause:
           Application.fetch_env!(@app, :start_agent_pause)
-          |> Utils.miliseconds_duration(),
+          |> PTA.Utils.miliseconds_duration(),
         read_queries_file: Path.join(queries_dir, queries_settings.read_queries_file),
         write_queries_file: Path.join(queries_dir, queries_settings.write_queries_file)
       }
@@ -43,9 +44,9 @@ defmodule PerfTestAgent do
       }
 
       spec = [
-        {LoadAgentSup, :no_args},
-        {LoadManager, load_manager_args},
-        {DbState, db_state_args}
+        {PTA.LoadAgentSup, :no_args},
+        {PTA.LoadManager, load_manager_args},
+        {PTA.DbState, db_state_args}
       ]
 
       Supervisor.init(spec, strategy: :rest_for_one)
