@@ -85,7 +85,7 @@ defmodule PTA.Metrics do
   end
 
   def report do
-    report =
+    counters_report =
       [
         :total_read_queries,
         :successful_read_queries,
@@ -95,16 +95,20 @@ defmodule PTA.Metrics do
         :failed_write_queries
       ]
       |> Enum.map(fn name -> {name, Counter.value(name: name)} end)
+      |> Enum.map(fn {name, value} -> "#{name}: #{value}" end)
 
-    Logger.info(report)
-
-    report =
+    histograms_report =
       [
         :read_query_duration_milliseconds,
         :write_query_duration_milliseconds
       ]
-      |> Enum.map(fn name -> {name, Histogram.value(name: name)} end)
+      |> Enum.map(fn name ->
+        {buckets, _total_time} = Histogram.value(name: name)
+        {name, buckets}
+      end)
+      |> Enum.map(fn {name, buckets} -> "#{name}: #{inspect(buckets)}" end)
 
-    Logger.info(report)
+    report = (counters_report ++ histograms_report) |> Enum.join("\n")
+    Logger.info("Metrics:\n#{report}")
   end
 end

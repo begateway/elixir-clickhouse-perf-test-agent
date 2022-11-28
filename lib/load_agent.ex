@@ -55,10 +55,10 @@ defmodule PTA.LoadAgent do
   @impl true
   def handle_continue(:check_query, state) do
     case make_query(state.type, state.query) do
-      {:ok, _} ->
+      {{:ok, _}, _duration} ->
         :ok
 
-      error ->
+      {{:error, error}, _duration} ->
         Logger.error("Invalid query\n#{inspect(state.query)}\n#{inspect(error)}")
         System.stop(1)
     end
@@ -74,17 +74,19 @@ defmodule PTA.LoadAgent do
   @impl true
   def handle_info(:next_query, state) do
     case make_query(state.type, state.query) do
-      {:ok, _} ->
-        # TODO update ok-counter
+      {{:ok, _}, duration} ->
+        PTA.Metrics.query_result(state.type, true)
+        PTA.Metrics.query_time(state.type, duration)
         :ok
 
-      other ->
+      {{:error, error}, duration} ->
+        PTA.Metrics.query_result(state.type, false)
+        PTA.Metrics.query_time(state.type, duration)
+
         Logger.error(
           "LoadAgent id:#{state.id} " <>
-            "got invalid response from clickhouse\n#{inspect(other)}"
+            "got invalid response from clickhouse\n#{inspect(error)}"
         )
-
-        # TODO update error-counter
     end
 
     state = %{state | query_counter: state.query_counter + 1}
@@ -125,11 +127,17 @@ defmodule PTA.LoadAgent do
   end
 
   defp make_query(:read, query) do
-    Client.query(query)
+    t1 = :erlang.monotonic_time()
+    res = Client.query(query)
+    t2 = :erlang.monotonic_time()
+    {res, t2 - t1}
   end
 
   defp make_query(:write, query) do
     data = PTA.DbState.rand_row()
-    Client.query(query, data)
+    t1 = :erlang.monotonic_time()
+    res = Client.query(query, data)
+    t2 = :erlang.monotonic_time()
+    {res, t2 - t1}
   end
 end
