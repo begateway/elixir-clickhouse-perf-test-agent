@@ -27,7 +27,8 @@ defmodule PTA.MixProject do
       {:postgrex, "~> 0.16.5"},
       {:myxql, "~> 0.6.3"},
       {:db_connection, "~> 2.4"},
-      {:epgsql, "~> 4.6"}
+      {:epgsql, "~> 4.6"},
+      {:mysql, "~> 1.8"}
     ]
   end
 end

@@ -7,7 +7,7 @@ defmodule PTA.LoadManager do
   end
 
   def run_agents() do
-    # GenServer.cast(__MODULE__, :run_agents)
+    GenServer.cast(__MODULE__, :run_agents)
   end
 
   def on_agent_finished(agent_id) do
