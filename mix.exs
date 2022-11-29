@@ -23,7 +23,11 @@ defmodule PTA.MixProject do
       {:ecto, "~> 3.9"},
       {:prometheus_ex, "~> 3.0"},
       {:pillar, git: "https://github.com/begateway/pillar.git"},
-      {:hackney, "~> 1.18"}
+      {:hackney, "~> 1.18"},
+      {:postgrex, "~> 0.16.5"},
+      {:myxql, "~> 0.6.3"},
+      {:db_connection, "~> 2.4"},
+      {:epgsql, "~> 4.6"}
     ]
   end
 end
