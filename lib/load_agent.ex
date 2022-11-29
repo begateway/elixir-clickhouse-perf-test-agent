@@ -2,8 +2,6 @@ defmodule PTA.LoadAgent do
   use GenServer
   require Logger
 
-  alias PTA.ClickhouseClientWrapper, as: Client
-
   @type query_type() :: :read | :write
 
   defmodule State do
@@ -57,11 +55,11 @@ defmodule PTA.LoadAgent do
 
   @impl true
   def handle_continue(:check_query, state) do
-    case make_query(state.client, state.type, state.query) do
-      {{:ok, _}, _duration} ->
+    case PTA.QueryTask.sync_query(state.client, state.type, state.query) do
+      :ok ->
         :ok
 
-      {{:error, error}, _duration} ->
+      {:error, error} ->
         Logger.error(
           "LoadAgent id:#{state.id} Invalid query\n#{inspect(state.query)}\n#{inspect(error)}"
         )
@@ -79,21 +77,7 @@ defmodule PTA.LoadAgent do
 
   @impl true
   def handle_info(:next_query, state) do
-    case make_query(state.client, state.type, state.query) do
-      {{:ok, _}, duration} ->
-        PTA.Metrics.query_result(state.type, true)
-        PTA.Metrics.query_time(state.type, duration)
-        :ok
-
-      {{:error, error}, duration} ->
-        PTA.Metrics.query_result(state.type, false)
-        PTA.Metrics.query_time(state.type, duration)
-
-        Logger.error(
-          "LoadAgent id:#{state.id} " <>
-            "got invalid response from clickhouse\n#{inspect(error)}"
-        )
-    end
+    PTA.QueryTask.async_query(state.client, state.type, state.query)
 
     state = %{state | query_counter: state.query_counter + 1}
 
@@ -118,6 +102,14 @@ defmodule PTA.LoadAgent do
     end
   end
 
+  def handle_info({_ref, :ok}, state) do
+    {:noreply, state}
+  end
+
+  def handle_info({:DOWN, _task_ref, :process, _task_pid, :normal}, state) do
+    {:noreply, state}
+  end
+
   def handle_info(msg, state) do
     Logger.error("LoadAgent.handle_info unknown msg #{inspect(msg)}")
     {:noreply, state}
@@ -131,20 +123,5 @@ defmodule PTA.LoadAgent do
   defp query_timeout(requests_per_second) do
     one_sec = 1_000
     div(one_sec, requests_per_second)
-  end
-
-  defp make_query(client, :read, query) do
-    t1 = :erlang.monotonic_time()
-    res = Client.query(client, query)
-    t2 = :erlang.monotonic_time()
-    {res, t2 - t1}
-  end
-
-  defp make_query(client, :write, query) do
-    data = PTA.DbState.rand_row()
-    t1 = :erlang.monotonic_time()
-    res = Client.query(client, query, data)
-    t2 = :erlang.monotonic_time()
-    {res, t2 - t1}
   end
 end
