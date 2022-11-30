@@ -11,6 +11,7 @@ defmodule PTA.LoadAgent do
             rate: pos_integer(),
             client: atom(),
             query: String.t(),
+            insert_data: map(),
             perf_test_duration: pos_integer(),
             start_time: DateTime.t() | nil,
             report_time: DateTime.t() | nil,
@@ -23,6 +24,7 @@ defmodule PTA.LoadAgent do
       :rate,
       :client,
       :query,
+      :insert_data,
       :perf_test_duration,
       :start_time,
       :report_time,
@@ -42,6 +44,7 @@ defmodule PTA.LoadAgent do
       rate: args.rate,
       client: args.client,
       query: args.query,
+      insert_data: args.insert_data,
       perf_test_duration: args.perf_test_duration,
       start_time: nil,
       report_time: nil,
@@ -55,7 +58,7 @@ defmodule PTA.LoadAgent do
 
   @impl true
   def handle_continue(:check_query, state) do
-    case PTA.QueryTask.sync_query(state.client, state.type, state.query) do
+    case PTA.QueryTask.sync_query(state.client, state.type, state.query, state.insert_data) do
       :ok ->
         :ok
 
@@ -77,7 +80,7 @@ defmodule PTA.LoadAgent do
 
   @impl true
   def handle_info(:next_query, state) do
-    PTA.QueryTask.async_query(state.client, state.type, state.query)
+    PTA.QueryTask.async_query(state.client, state.type, state.query, state.insert_data)
 
     state = %{state | query_counter: state.query_counter + 1}
 

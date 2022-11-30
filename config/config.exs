@@ -19,7 +19,8 @@ config :perf_test_agent,
     queries_dir: "priv/queries",
     create_table_file: "create_table.sql",
     read_queries_file: "read.sql",
-    write_queries_file: "write.sql"
+    write_queries_file: "write.sql",
+    insert_data_file: "data.json"
   },
 
   # Histogram backets in milliseconds

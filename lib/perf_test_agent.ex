@@ -39,12 +39,14 @@ defmodule PerfTestAgent do
           Application.fetch_env!(@app, :start_agent_pause)
           |> PTA.Utils.miliseconds_duration(),
         read_queries_file: Path.join(queries_dir, queries_settings.read_queries_file),
-        write_queries_file: Path.join(queries_dir, queries_settings.write_queries_file)
+        write_queries_file: Path.join(queries_dir, queries_settings.write_queries_file),
+        insert_data_file: Path.join(queries_dir, queries_settings.insert_data_file)
       }
 
       db_state_args = %{
         clickhouse_url: clickhouse_url,
         create_table_file: Path.join(queries_dir, queries_settings.create_table_file),
+        insert_data_file: Path.join(queries_dir, queries_settings.insert_data_file),
         table_name: table_settings.name,
         create_table?: table_settings.create_table?,
         fill_table?: table_settings.fill_table?

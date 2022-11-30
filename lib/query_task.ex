@@ -4,12 +4,12 @@ defmodule PTA.QueryTask do
 
   alias PTA.ClickhouseClientWrapper, as: Client
 
-  def async_query(client, query_type, query) do
-    Task.async(__MODULE__, :sync_query, [client, query_type, query])
+  def async_query(client, query_type, query, insert_data) do
+    Task.async(__MODULE__, :sync_query, [client, query_type, query, insert_data])
   end
 
-  def sync_query(client, query_type, query) do
-    case make_query(client, query_type, query) do
+  def sync_query(client, query_type, query, insert_data) do
+    case make_query(client, query_type, query, insert_data) do
       {{:ok, _}, duration} ->
         PTA.Metrics.query_result(query_type, true)
         PTA.Metrics.query_time(query_type, duration)
@@ -24,15 +24,15 @@ defmodule PTA.QueryTask do
     end
   end
 
-  defp make_query(client, :read, query) do
+  defp make_query(client, :read, query, _) do
     t1 = :erlang.monotonic_time()
     res = Client.query(client, query)
     t2 = :erlang.monotonic_time()
     {res, t2 - t1}
   end
 
-  defp make_query(client, :write, query) do
-    data = PTA.DbState.rand_row()
+  defp make_query(client, :write, query, insert_data) do
+    data = PTA.DbState.rand_row(insert_data)
     t1 = :erlang.monotonic_time()
     res = Client.query(client, query, data)
     t2 = :erlang.monotonic_time()

@@ -23,7 +23,8 @@ defmodule PTA.LoadManager do
       perf_test_duration: args.perf_test_duration,
       start_agent_pause: args.start_agent_pause,
       read_queries_file: args.read_queries_file,
-      write_queries_file: args.write_queries_file
+      write_queries_file: args.write_queries_file,
+      insert_data_file: args.insert_data_file
     }
 
     Logger.info("Start LoadManager")
@@ -33,6 +34,8 @@ defmodule PTA.LoadManager do
   @impl true
   def handle_cast(:run_agents, state) do
     Logger.info("Run load agents")
+
+    insert_data = File.read!(state.insert_data_file) |> Jason.decode!()
 
     read_queries =
       get_queries_from_file(state.read_queries_file)
@@ -51,6 +54,7 @@ defmodule PTA.LoadManager do
           rate: rps,
           client: state.client,
           query: query,
+          insert_data: insert_data,
           perf_test_duration: state.perf_test_duration
         }
       end)
