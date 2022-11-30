@@ -12,6 +12,17 @@ defmodule PTA.ClickhouseMetrics do
     GenServer.call(__MODULE__, :get_metrics)
   end
 
+  def report do
+    report =
+      get_metrics()
+      |> Enum.to_list()
+      |> Enum.sort()
+      |> Enum.map(fn {name, value} -> " #{name}: #{value}" end)
+      |> Enum.join("\n")
+
+    Logger.info("CH Metrics:\n#{report}")
+  end
+
   @impl true
   def init(metrics) do
     Logger.info("Start ClickhouseMetrics")
@@ -64,13 +75,30 @@ defmodule PTA.ClickhouseMetrics do
   end
 
   defp load_metrics(table, metric_names) do
+    in_condition =
+      case Map.fetch(metric_names, "name_equal") do
+        {:ok, _} -> " OR (metric IN {metric_names})"
+        :error -> ""
+      end
+
+    like_conditions =
+      Enum.map(
+        Map.get(metric_names, "name_like", []),
+        fn name -> " OR (metric LIKE '#{name}')" end
+      )
+      |> Enum.join("")
+
     query = """
     SELECT metric, value FROM #{table}
-    WHERE metric IN {metric_names}
+    WHERE false
+    #{in_condition}
+    #{like_conditions}
     FORMAT JSON
     """
 
-    {:ok, metrics} = Client.query(:pillar_0, query, %{metric_names: metric_names})
+    params = %{metric_names: metric_names["name_equal"]}
+
+    {:ok, metrics} = Client.query(:pillar_0, query, params)
 
     Enum.reduce(metrics, %{}, fn %{"metric" => name, "value" => value}, acc ->
       Map.put(acc, "m." <> name, value)

@@ -95,7 +95,7 @@ defmodule PTA.Metrics do
         :failed_write_queries
       ]
       |> Enum.map(fn name -> {name, Counter.value(name: name)} end)
-      |> Enum.map(fn {name, value} -> "#{name}: #{value}" end)
+      |> Enum.map(fn {name, value} -> " #{name}: #{value}" end)
 
     histograms_report =
       [
@@ -106,7 +106,7 @@ defmodule PTA.Metrics do
         {buckets, _total_time} = Histogram.value(name: name)
         {name, buckets}
       end)
-      |> Enum.map(fn {name, buckets} -> "#{name}: #{inspect(buckets)}" end)
+      |> Enum.map(fn {name, buckets} -> " #{name}: #{inspect(buckets)}" end)
 
     report = (counters_report ++ histograms_report) |> Enum.join("\n")
     Logger.info("Metrics:\n#{report}")

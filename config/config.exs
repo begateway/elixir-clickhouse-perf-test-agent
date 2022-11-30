@@ -33,19 +33,6 @@ config :perf_test_agent,
 
   # Clickhouse metrics
   clickhouse_metrics: %{
-    "system.metrics" => [
-      "Query",
-      "Merge",
-      "TCPConnection",
-      "Read",
-      "Write",
-      "QueryThread",
-      "MemoryTracking",
-      "DelayedInserts",
-      "StorageBufferRows",
-      "StorageBufferBytes",
-      "KeeperAliveConnections"
-    ],
     "system.events" => [
       "Query",
       "SelectQuery",
@@ -58,22 +45,24 @@ config :perf_test_agent,
       "Merge",
       "MergedRows"
     ],
-    "system.asynchronous_metrics" => [
-      "CPUFrequencyMHz_0",
-      "CPUFrequencyMHz_1",
-      "CPUFrequencyMHz_2",
-      "CPUFrequencyMHz_3",
-      "CPUFrequencyMHz_4",
-      "CPUFrequencyMHz_5",
-      "CPUFrequencyMHz_6",
-      "CPUFrequencyMHz_7",
-      "CPUFrequencyMHz_8",
-      "CPUFrequencyMHz_9",
-      "CPUFrequencyMHz_10",
-      "CPUFrequencyMHz_11",
-      "MemoryDataAndStack",
-      "MemoryResident",
-      "MemoryShared",
-      "MemoryVirtual"
-    ]
+    "system.metrics" => %{
+      "name_equal" => [
+        "Query",
+        "Merge",
+        "TCPConnection",
+        "Read",
+        "Write",
+        "QueryThread",
+        "MemoryTracking",
+        "DelayedInserts",
+        "StorageBufferRows",
+        "StorageBufferBytes",
+        "KeeperAliveConnections"
+      ],
+      "name_like" => []
+    },
+    "system.asynchronous_metrics" => %{
+      "name_equal" => [],
+      "name_like" => ["CPUFrequency%", "Memory%"]
+    }
   }

@@ -7,7 +7,7 @@ defmodule PTA.LoadManager do
   end
 
   def run_agents() do
-    # GenServer.cast(__MODULE__, :run_agents)
+    GenServer.cast(__MODULE__, :run_agents)
   end
 
   def on_agent_finished(agent_id) do
@@ -69,6 +69,7 @@ defmodule PTA.LoadManager do
     case agents do
       [] ->
         PTA.Metrics.report()
+        PTA.ClickhouseMetrics.report()
         Logger.info("DONE")
 
       _ ->
@@ -104,6 +105,7 @@ defmodule PTA.LoadManager do
 
   def handle_info(:report_metrics, state) do
     PTA.Metrics.report()
+    PTA.ClickhouseMetrics.report()
     Process.send_after(self(), :report_metrics, 60_000)
     {:noreply, state}
   end
