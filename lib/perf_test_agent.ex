@@ -51,6 +51,7 @@ defmodule PerfTestAgent do
       }
 
       spec = [
+        {PTA.ClickhouseMetrics, Application.fetch_env!(@app, :clickhouse_metrics)},
         {PTA.LoadAgentSup, :no_args},
         {PTA.LoadManager, load_manager_args},
         {PTA.DbState, db_state_args}
