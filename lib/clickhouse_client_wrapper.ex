@@ -27,12 +27,12 @@ defmodule PTA.ClickhouseClientWrapper do
 
   def query(:pillar_0, query, params) do
     connection()
-    |> Pillar.query(query, params)
+    |> Pillar.query(query, params, %{timeout: 10_000})
   end
 
   def query(:pillar_1, query, params) do
     connection()
-    |> Pillar.query(query, params, %{db_side_batch_insertions: true})
+    |> Pillar.query(query, params, %{db_side_batch_insertions: true, timeout: 10_000})
   end
 
   def query(:hackney_0, query, params) do

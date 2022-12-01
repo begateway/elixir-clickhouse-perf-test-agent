@@ -7,7 +7,7 @@ config :perf_test_agent,
   # :pillar_0 -- Pillar with db_side_batch_insertions: false
   # :pillar_1 -- Pillar with db_side_batch_insertions: true
   # :hackney
-  client: :pillar_1,
+  client: :pillar_0,
 
   # Table for queries
   table: %{
@@ -67,3 +67,5 @@ config :perf_test_agent,
       "name_like" => ["CPUFrequency%", "Memory%"]
     }
   }
+
+import_config "dev.secret.exs"
