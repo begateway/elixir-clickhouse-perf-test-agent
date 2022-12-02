@@ -1,32 +1,28 @@
 # Elixir-to-Clickhouse Performance Testing Agent
 
-Find optional way to work with ClickHouse from Elixir.
+The goal is to find an optimal way to work with ClickHouse from Elixir.
 
-The idea is to try different clients for Clickhouse 
+Our idea is to try different clients for Clickhouse 
 https://clickhouse.com/docs/en/interfaces
 
 - Pillar
 - Just a http client (Hackney)
 - Postgres driver
 - MySQL driver
-- Clickhousex
 
-Use them to create load (insert and select) queries. Then gather client-side and server-side metrics. And finally choose the optinal client.
+Use them to create load (insert and select) queries. Then gather client-side and server-side metrics. And finally choose the optimal client.
 
 
 ## Setup environment
 
-It is recommended to create a separate database instead of using `default` of one of existing databases.
+It is recommended to create a separate database instead of using `default` or one of existing databases.
 
-By default `clickhouse_url` is "http://pta_user:pta@localhost/pta_db". If you need to redefine it do it in `config/dev.exs`.
+By default `clickhouse_url` is `http://pta_user:pta@localhost/pta_db`. If you need to redefine it do it in `config/dev.exs`.
 
 There are enough configuration to adapt the perf test for different data schemas and usage scenarious.
 
 
 ## Clients
-
-Clickhouse supports many ways to connect it:
-https://clickhouse.com/docs/en/interfaces
 
 Clients we have tryed:
 - [:pillar_0](https://hex.pm/packages/pillar) (HTTP) -- Pillar with `db_side_batch_insertions: false`
@@ -44,7 +40,7 @@ I belive any of those libraries could be forked and adapt to work with Clickhous
 
 ## Test Results
 
-I only did perf tests for Pillar with `db_side_batch_insertions` true and false. However I did it on several databases with different amount of data and different loads. The results were the similar.
+I only did perf tests for Pillar with `db_side_batch_insertions` `true` and `false`. However I did it on several databases with different amount of data and different loads. The results were the similar.
 
 For example, this is the results on my local computer:
 
@@ -58,6 +54,7 @@ Load for 3 minutes, 100 RPS inserts, 7 RPS selects.
 #### No batching 
 
 Total read queries: 1,202
+
 Total write queries: 28,571
 
 Query Latency:
@@ -70,8 +67,9 @@ Query Latency:
  
 #### With batching
 
-total_read_queries: 1,202 no errors
-total_write_queries: 28,565 no errors
+Total read queries: 1,202
+
+Total write queries: 28,565
 
 Query Latency:
 
