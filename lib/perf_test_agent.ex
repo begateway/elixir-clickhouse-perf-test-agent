@@ -28,8 +28,6 @@ defmodule PerfTestAgent do
       histogram_backets = Application.fetch_env!(@app, :histogram_backets)
       PTA.Metrics.setup(histogram_backets)
 
-      :ok = :hackney_pool.start_pool(:clickhouse, [{:max_connections, 200}])
-
       load_manager_args = %{
         client: client,
         perf_test_duration:
